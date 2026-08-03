@@ -24,6 +24,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     var discoveredPrinters: [CBPeripheral] = []
     private var pendingChunks: [Data] = []
     private var isSending = false
+    private var chunkIndex: Int = 0
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -132,16 +133,16 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                         self.imageView.image = image
                     }
                     EscPosImageConverter.convertToEscPosData(image, maxWidth: 576) { data in
-//                        DispatchQueue.global(qos: .utility).async {
-//                            if let data = data{
-////                                print("Berhasil mengonversi gambar! Ukuran byte: \(data.count) bytes")
-////                                let writeType: CBCharacteristicWriteType = characteristic.properties.contains(.writeWithoutResponse) ?
-////                                    .withoutResponse : .withResponse
-////                                
-////                                peripheral.writeValue(data, for: characteristic, type: writeType)
-//                                self.sendDataInChunks(data)
-//                            }
-//                        }
+                        DispatchQueue.global(qos: .utility).async {
+                            if let data = data{
+//                                print("Berhasil mengonversi gambar! Ukuran byte: \(data.count) bytes")
+//                                let writeType: CBCharacteristicWriteType = characteristic.properties.contains(.writeWithoutResponse) ?
+//                                    .withoutResponse : .withResponse
+//                                
+//                                peripheral.writeValue(data, for: characteristic, type: writeType)
+                                self.sendDataInChunks(data)
+                            }
+                        }
                     }
                 }
             }
@@ -419,64 +420,71 @@ extension ViewController{
             return
         }
 
-        // Tentukan write type: withResponse lebih aman (ada ACK), withoutResponse lebih cepat tapi rawan drop
-        let writeType: CBCharacteristicWriteType = characteristic.properties.contains(.writeWithoutResponse) ? .withoutResponse : .withResponse
+        let writeType: CBCharacteristicWriteType = characteristic.properties.contains(.writeWithoutResponse)
+            ? .withoutResponse
+            : .withResponse
 
-        // Ambil MTU maksimal sesuai write type
         let mtu = peripheral.maximumWriteValueLength(for: writeType)
-        let chunkSize = max(20, mtu) // fallback minimal BLE MTU lama
+        let chunkSize = max(20, mtu)
 
-        // Pecah Data jadi chunk sesuai MTU
         pendingChunks = stride(from: 0, to: data.count, by: chunkSize).map { offset in
             let end = min(offset + chunkSize, data.count)
             return data.subdata(in: offset..<end)
         }
+        chunkIndex = 0
+        isSending = true
 
         sendNextChunk(peripheral: peripheral, characteristic: characteristic, writeType: writeType)
     }
 
     private func sendNextChunk(peripheral: CBPeripheral, characteristic: CBCharacteristic, writeType: CBCharacteristicWriteType) {
-        guard !pendingChunks.isEmpty else {
-            isSending = false
-            print("Selesai kirim data ke printer")
-            return
-        }
-
-        if writeType == .withoutResponse && !peripheral.canSendWriteWithoutResponse {
-            // Tunggu delegate peripheralIsReady(toSendWriteWithoutResponse:) manggil ulang
-            isSending = false
-            return
-        }
-
-        isSending = true
-        let chunk = pendingChunks.removeFirst()
-        peripheral.writeValue(chunk, for: characteristic, type: writeType)
-
         if writeType == .withResponse {
-            // Untuk withResponse, lanjut chunk berikutnya di delegate didWriteValueFor
-            return
-        } else {
-            // Untuk withoutResponse, kasih jeda kecil biar buffer BLE stack tidak overflow
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
-                self.sendNextChunk(peripheral: peripheral, characteristic: characteristic, writeType: writeType)
+            guard chunkIndex < pendingChunks.count else {
+                finishSending()
+                return
             }
+            let chunk = pendingChunks[chunkIndex]
+            chunkIndex += 1
+            peripheral.writeValue(chunk, for: characteristic, type: .withResponse)
+            // lanjut di delegate didWriteValueFor
+            return
         }
+
+        // withoutResponse: kirim sebanyak mungkin selama buffer BLE masih siap
+        while chunkIndex < pendingChunks.count {
+            guard peripheral.canSendWriteWithoutResponse else {
+                // stack lagi penuh, nunggu delegate peripheralIsReady(toSendWriteWithoutResponse:)
+                return
+            }
+            let chunk = pendingChunks[chunkIndex]
+            peripheral.writeValue(chunk, for: characteristic, type: .withoutResponse)
+            chunkIndex += 1
+        }
+
+        finishSending()
     }
 
+    private func finishSending() {
+        isSending = false
+        pendingChunks.removeAll()
+        chunkIndex = 0
+        print("Selesai kirim data ke printer")
+    }
     // MARK: - CBPeripheralDelegate
     // Dipanggil setelah writeWithResponse sukses -> lanjut chunk berikutnya
     func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
         if let error = error {
-            print("Write error: \(error.localizedDescription)")
+            print("Gagal kirim chunk: \(error)")
+            isSending = false
             return
         }
-        guard let writeChar = writeCharacteristic else { return }
-        sendNextChunk(peripheral: peripheral, characteristic: writeChar, writeType: .withResponse)
+        guard let writeCharacteristic = writeCharacteristic, characteristic == writeCharacteristic else { return }
+        sendNextChunk(peripheral: peripheral, characteristic: characteristic, writeType: .withResponse)
     }
 
-    // Dipanggil saat BLE stack siap terima write lagi (withoutResponse)
+    // dipanggil saat buffer BLE longgar lagi, khusus withoutResponse
     func peripheralIsReady(toSendWriteWithoutResponse peripheral: CBPeripheral) {
-        guard let writeChar = writeCharacteristic, !isSending else { return }
-        sendNextChunk(peripheral: peripheral, characteristic: writeChar, writeType: .withoutResponse)
+        guard let characteristic = writeCharacteristic else { return }
+        sendNextChunk(peripheral: peripheral, characteristic: characteristic, writeType: .withoutResponse)
     }
 }
