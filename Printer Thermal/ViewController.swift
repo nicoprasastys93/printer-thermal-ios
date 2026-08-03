@@ -7,9 +7,7 @@
 
 import UIKit
 import CoreBluetooth
-import PDFKit
 import Accelerate
-import Vision
 
 class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDelegate {
     @IBOutlet weak var bottomSheetView: UIView!
@@ -103,29 +101,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     func printPOS() {
         let base64String = "JVBERi0xLjcKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZwovT3V0bGluZXMgMiAwIFIKL1BhZ2VzIDMgMCBSID4+CmVuZG9iagoyIDAgb2JqCjw8IC9UeXBlIC9PdXRsaW5lcyAvQ291bnQgMCA+PgplbmRvYmoKMyAwIG9iago8PCAvVHlwZSAvUGFnZXMKL0tpZHMgWzYgMCBSCl0KL0NvdW50IDEKL1Jlc291cmNlcyA8PAovUHJvY1NldCA0IDAgUgovRm9udCA8PCAKL0YxIDggMCBSCi9GMiA5IDAgUgo+Pgo+PgovTWVkaWFCb3ggWzAuMDAwIDAuMDAwIDIzMC4wMDAgMTAwMC4wMDBdCiA+PgplbmRvYmoKNCAwIG9iagpbL1BERiAvVGV4dCBdCmVuZG9iago1IDAgb2JqCjw8Ci9Qcm9kdWNlciAo/v8AZABvAG0AcABkAGYAIAAzAC4AMQAuADAAIAArACAAQwBQAEQARikKL0NyZWF0aW9uRGF0ZSAoRDoyMDI2MDgwMzEzMzI1NiswNycwMCcpCi9Nb2REYXRlIChEOjIwMjYwODAzMTMzMjU2KzA3JzAwJykKL1RpdGxlICj+/wBCAGkAbABsKQo+PgplbmRvYmoKNiAwIG9iago8PCAvVHlwZSAvUGFnZQovTWVkaWFCb3ggWzAuMDAwIDAuMDAwIDIzMC4wMDAgMTAwMC4wMDBdCi9QYXJlbnQgMyAwIFIKL0NvbnRlbnRzIDcgMCBSCj4+CmVuZG9iago3IDAgb2JqCjw8IC9GaWx0ZXIgL0ZsYXRlRGVjb2RlCi9MZW5ndGggMjc2ID4+CnN0cmVhbQp4nI2QO08DQQyE+/yKKaGIsb27d7vpLi9ICJyUrEQRpUAK0EATkMjPx3mALuSQaFzY/mbs6TAxM5p189LpZwSmQhjJOyo1Iq9xNRYIU0B+BpYX1XA4yZP6vpphcDMa3I7mlyvkKUZ5j5ekziOxJ1U54Ar1xEf8oQ9JqNCEdmM7IMZAwq7FU1mLLseuDUV7WvZCbPLilIK5/i1wVw8XP8T56/Nra5YBn2BMsYSSik9lEFPzUbCy/rqj5rI/0yIqPN7MV4j3vofOKxZnOi4VpXjnJDh31PmNmVAKlOKpUCOXQshxaHlLtifZKxVmsltn15bCoJ5VGM/qKrel7wN5u+G/Lrauoi3rT9uPzeM75Bv6ArjJhAIKZW5kc3RyZWFtCmVuZG9iago4IDAgb2JqCjw8IC9UeXBlIC9Gb250Ci9TdWJ0eXBlIC9UeXBlMQovTmFtZSAvRjEKL0Jhc2VGb250IC9IZWx2ZXRpY2EKL0VuY29kaW5nIC9XaW5BbnNpRW5jb2RpbmcKPj4KZW5kb2JqCjkgMCBvYmoKPDwgL1R5cGUgL0ZvbnQKL1N1YnR5cGUgL1R5cGUxCi9OYW1lIC9GMgovQmFzZUZvbnQgL0hlbHZldGljYS1Cb2xkCi9FbmNvZGluZyAvV2luQW5zaUVuY29kaW5nCj4+CmVuZG9iagp4cmVmCjAgMTAKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDA5IDAwMDAwIG4gCjAwMDAwMDAwNzQgMDAwMDAgbiAKMDAwMDAwMDEyMCAwMDAwMCBuIAowMDAwMDAwMjg1IDAwMDAwIG4gCjAwMDAwMDAzMTQgMDAwMDAgbiAKMDAwMDAwMDQ4MyAwMDAwMCBuIAowMDAwMDAwNTg3IDAwMDAwIG4gCjAwMDAwMDA5MzUgMDAwMDAgbiAKMDAwMDAwMTA0MiAwMDAwMCBuIAp0cmFpbGVyCjw8Ci9TaXplIDEwCi9Sb290IDEgMCBSCi9JbmZvIDUgMCBSCi9JRFs8YWUzYmRjMTVmOWJlNzY5MmQ0NTgyM2JiYmFjOGFhYTM+PGFlM2JkYzE1ZjliZTc2OTJkNDU4MjNiYmJhYzhhYWEzPl0KPj4Kc3RhcnR4cmVmCjExNTQKJSVFT0YK"
         
-//        let base64String = "JVBERi0xLjcKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZwovT3V0bGluZXMgMiAwIFIKL1BhZ2VzIDMgMCBSID4+CmVuZG9iagoyIDAgb2JqCjw8IC9UeXBlIC9PdXRsaW5lcyAvQ291bnQgMCA+PgplbmRvYmoKMyAwIG9iago8PCAvVHlwZSAvUGFnZXMKL0tpZHMgWzYgMCBSCl0KL0NvdW50IDEKL1Jlc291cmNlcyA8PAovUHJvY1NldCA0IDAgUgovRm9udCA8PCAKL0YxIDggMCBSCi9GMiA5IDAgUgo+Pgo+PgovTWVkaWFCb3ggWzAuMDAwIDAuMDAwIDIzMC4wMDAgMTAwMC4wMDBdCiA+PgplbmRvYmoKNCAwIG9iagpbL1BERiAvVGV4dCBdCmVuZG9iago1IDAgb2JqCjw8Ci9Qcm9kdWNlciAo/v8AZABvAG0AcABkAGYAIAAzAC4AMQAuADAAIAArACAAQwBQAEQARikKL0NyZWF0aW9uRGF0ZSAoRDoyMDI2MDczMTExNDYyMCswNycwMCcpCi9Nb2REYXRlIChEOjIwMjYwNzMxMTE0NjIwKzA3JzAwJykKL1RpdGxlICj+/wBCAGkAbABsKQo+PgplbmRvYmoKNiAwIG9iago8PCAvVHlwZSAvUGFnZQovTWVkaWFCb3ggWzAuMDAwIDAuMDAwIDIzMC4wMDAgMTAwMC4wMDBdCi9QYXJlbnQgMyAwIFIKL0NvbnRlbnRzIDcgMCBSCj4+CmVuZG9iago3IDAgb2JqCjw8IC9GaWx0ZXIgL0ZsYXRlRGVjb2RlCi9MZW5ndGggMjQ1ID4+CnN0cmVhbQp4nH2QsU4DQQxE+/uKKaGIsb323m46Eg5QEEJKTkoRpUAK0EATkMjns7kEdIQTjYux34ztiomZ0a/bl2rSIgXy2pEtUK0J7QYX1wJhcrTPwOpsettM75r5+RrtDE27Z7wmDYbMRqpyYBRqxEdmOYFkXKIP7dslNSUn4TAQpKxxxPVIM8TGlsbCfV6CUWL9x+D+4WrxQ/y9d35TxHLqJxgzrKCkUTRGyyFycqyLvqlUybs1mUoLbyU3UOhyD8orFqc+EsXcstc5ZT36nGLFKDvlZL+Men+JUuZ94CzZ9d8QI5Wtu3EOQ1942n1sH98h39AXaj1qvQplbmRzdHJlYW0KZW5kb2JqCjggMCBvYmoKPDwgL1R5cGUgL0ZvbnQKL1N1YnR5cGUgL1R5cGUxCi9OYW1lIC9GMQovQmFzZUZvbnQgL0hlbHZldGljYQovRW5jb2RpbmcgL1dpbkFuc2lFbmNvZGluZwo+PgplbmRvYmoKOSAwIG9iago8PCAvVHlwZSAvRm9udAovU3VidHlwZSAvVHlwZTEKL05hbWUgL0YyCi9CYXNlRm9udCAvSGVsdmV0aWNhLUJvbGQKL0VuY29kaW5nIC9XaW5BbnNpRW5jb2RpbmcKPj4KZW5kb2JqCnhyZWYKMCAxMAowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMDkgMDAwMDAgbiAKMDAwMDAwMDA3NCAwMDAwMCBuIAowMDAwMDAwMTIwIDAwMDAwIG4gCjAwMDAwMDAyODUgMDAwMDAgbiAKMDAwMDAwMDMxNCAwMDAwMCBuIAowMDAwMDAwNDgzIDAwMDAwIG4gCjAwMDAwMDA1ODcgMDAwMDAgbiAKMDAwMDAwMDkwNCAwMDAwMCBuIAowMDAwMDAxMDExIDAwMDAwIG4gCnRyYWlsZXIKPDwKL1NpemUgMTAKL1Jvb3QgMSAwIFIKL0luZm8gNSAwIFIKL0lEWzw5NDg3ZTI5MzU2MzliMmE1MmY1YzBlY2U0MTA3NWIwNj48OTQ4N2UyOTM1NjM5YjJhNTJmNWMwZWNlNDEwNzViMDY+XQo+PgpzdGFydHhyZWYKMTEyMwolJUVPRgo="
-//        if let decodedData = Data(base64Encoded: base64String) {
-//            let pdf = PDFDocument(data: decodedData)
-//            
-//            guard let page = pdf?.page(at: 0) else {
-//                return
-//            }
-//            
-//            let image = page.thumbnail(
-//                of: CGSize(width: 576, height: 1000),
-//                for: .mediaBox
-//            )
-//            
-//            imageView.image = image
-//            
-//            if let printData = EscPosImageConverter.convertToEscPosData(image, maxWidth: 576) {
-//                print("Berhasil mengonversi gambar! Ukuran byte: \(printData.count) bytes")
-//                let writeType: CBCharacteristicWriteType = characteristic.properties.contains(.writeWithoutResponse) ?
-//                    .withoutResponse : .withResponse
-//                
-//                peripheral.writeValue(printData, for: characteristic, type: writeType)
-//            }
-//        }
+        tryAutoReconnect()
+        
         if let decodData = Data(base64Encoded: base64String){
             imageFromPDFData(decodData){ image in
                 if let image = image{
@@ -134,14 +111,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                     }
                     EscPosImageConverter.convertToEscPosData(image, maxWidth: 576) { data in
                         DispatchQueue.global(qos: .utility).async {
-                            if let data = data{
-//                                print("Berhasil mengonversi gambar! Ukuran byte: \(data.count) bytes")
-//                                let writeType: CBCharacteristicWriteType = characteristic.properties.contains(.writeWithoutResponse) ?
-//                                    .withoutResponse : .withResponse
-//                                
-//                                peripheral.writeValue(data, for: characteristic, type: writeType)
-                                self.sendDataInChunks(data)
-                            }
+                            guard let data = data else {return}
+                            self.sendDataInChunks(data)
                         }
                     }
                 }
@@ -150,7 +121,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     }
     func imageFromPDFData(_ data: Data, completion: @escaping((_ image: UIImage?)-> Void)){
         DispatchQueue.global(qos: .utility).async{
-            let startTime = CFAbsoluteTimeGetCurrent()
+            let timeStart = CFAbsoluteTimeGetCurrent()
             // 1. Buat provider data dan dokumen CGPDF
             guard let provider = CGDataProvider(data: data as CFData),
                   let pdfDocument = CGPDFDocument(provider),
@@ -166,9 +137,9 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             
             // 3. Setup graphics context dengan ukuran yang diinginkan
             let renderer = UIGraphicsImageRenderer(size: pageRect.size)
+            
             let image = renderer.image { ctx in
                 let context = ctx.cgContext
-                
                 context.setFillColor(UIColor.white.cgColor)
                 context.fill(pageRect)
                 
@@ -181,162 +152,108 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 context.drawPDFPage(page)
                 context.restoreGState()
             }
-            let timeElapsed = CFAbsoluteTimeGetCurrent() - startTime
-            print("Proses di background [\(Thread.current)] selesai dalam: \(timeElapsed) detik")
+            let timeEnd = CFAbsoluteTimeGetCurrent()
+            let timeResult = timeEnd - timeStart
+            print("========PROSES PDF TO IMAGE========")
+            print("Background Process")
+            print("Finish Add => \(timeResult) detik")
             
-            
-            let finalImage = self.cropToContentAccelerate(image: image, padding: 0)
-            
-            completion(finalImage)
+            self.cropToContentAccelerate(image: image, padding: 0){ image in
+                completion(image)
+            }
         }
     }
     
-//    func cropToContent(image: UIImage, padding: CGFloat, threshold: UInt8 = 245) -> UIImage? {
-//        guard let cgImage = image.cgImage else { return nil }
-//        
-//        let width = cgImage.width
-//        let height = cgImage.height
-//        
-//        guard let dataProvider = cgImage.dataProvider,
-//              let data = dataProvider.data,
-//              let bytes = CFDataGetBytePtr(data) else {
-//            return image
-//        }
-//        
-//        let bytesPerPixel = cgImage.bitsPerPixel / 8
-//        let bytesPerRow = cgImage.bytesPerRow
-//        
-//        var minX = width
-//        var maxX = 0
-//        var minY = height
-//        var maxY = 0
-//        var foundContent = false
-//        
-//        // Scan tiap pixel (bisa di-skip step > 1 kalau mau lebih cepat)
-//        for y in 0..<height {
-//            let rowStart = y * bytesPerRow
-//            for x in 0..<width {
-//                let pixelIndex = rowStart + x * bytesPerPixel
-//                guard pixelIndex + 2 < CFDataGetLength(data) else { continue }
-//                
-//                let r = bytes[pixelIndex]
-//                let g = bytes[pixelIndex + 1]
-//                let b = bytes[pixelIndex + 2]
-//                
-//                // Kalau bukan putih -> ini konten
-//                if r < threshold || g < threshold || b < threshold {
-//                    foundContent = true
-//                    if x < minX { minX = x }
-//                    if x > maxX { maxX = x }
-//                    if y < minY { minY = y }
-//                    if y > maxY { maxY = y }
-//                }
-//            }
-//        }
-//        
-//        guard foundContent else { return nil } // halaman benar-benar kosong
-//        
-//        // Tambah padding, tapi jangan sampai keluar batas image
-//        let paddingPx = Int(padding * (image.scale > 0 ? 1 : 1)) // padding dalam pixel image
-//        let cropX = max(0, minX - paddingPx)
-//        let cropY = max(0, minY - paddingPx)
-//        let cropWidth = min(width - cropX, (maxX - minX) + paddingPx * 2)
-//        let cropHeight = min(height - cropY, (maxY - minY) + paddingPx * 2)
-//        
-//        let cropRect = CGRect(x: cropX, y: cropY, width: cropWidth, height: cropHeight)
-//        
-//        guard let croppedCGImage = cgImage.cropping(to: cropRect) else { return image }
-//        
-//        return UIImage(cgImage: croppedCGImage, scale: image.scale, orientation: image.imageOrientation)
-//    }
+    func cropToContentAccelerate(image: UIImage, padding: CGFloat, threshold: UInt8 = 245, completion: @escaping((_ image: UIImage?) -> Void)) {
+        DispatchQueue.global(qos: .utility).async {
+            let timeStart = CFAbsoluteTimeGetCurrent()
 
-//    func cropToContentUsingVision(image: UIImage, padding: CGFloat = 10) -> UIImage? {
-//        guard let cgImage = image.cgImage else { return nil }
-//        
-//        let requestHandler = VNImageRequestHandler(cgImage: cgImage, options: [:])
-//        let request = VNRecognizeTextRequest()
-//        request.recognitionLevel = .fast // atau .accurate jika butuh lebih teliti
-//        
-//        do {
-//            try requestHandler.perform([request])
-//            
-//            guard let results = request.results, !results.isEmpty else { return nil }
-//            
-//            // Gabungkan seluruh bounding box dari teks yang terdeteksi
-//            var boundingBox = results[0].boundingBox
-//            for observation in results.dropFirst() {
-//                boundingBox = boundingBox.union(observation.boundingBox)
-//            }
-//            
-//            // Konversi normalized coordinates (0.0 - 1.0) ke koordinat pixel
-//            let imageSize = CGSize(width: cgImage.width, height: cgImage.height)
-//            
-//            // Vision menggunakan origin di Kiri-Bawah, CGImage di Kiri-Atas
-//            var cropRect = VNImageRectForNormalizedRect(boundingBox, Int(imageSize.width), Int(imageSize.height))
-//            cropRect.origin.y = CGFloat(cgImage.height) - cropRect.maxY
-//            
-//            // Tambahkan Padding
-//            cropRect = cropRect.insetBy(dx: -padding, dy: -padding)
-//            let imageBounds = CGRect(origin: .zero, size: imageSize)
-//            cropRect = cropRect.intersection(imageBounds)
-//            
-//            guard let croppedCGImage = cgImage.cropping(to: cropRect) else { return nil }
-//            return UIImage(cgImage: croppedCGImage, scale: image.scale, orientation: image.imageOrientation)
-//            
-//        } catch {
-//            print("Vision error: \(error)")
-//            return nil
-//        }
-//    }
-    
-    func cropToContentAccelerate(image: UIImage, padding: CGFloat, threshold: UInt8 = 245) -> UIImage? {
-        guard let cgImage = image.cgImage else { return nil }
-        
-        // Convert CGImage ke vImage_Buffer
-        guard let buffer = try? vImage_Buffer(cgImage: cgImage) else { return nil }
-        defer { buffer.free() }
-        
-        let width = Int(buffer.width)
-        let height = Int(buffer.height)
-        let rowBytes = buffer.rowBytes
-        guard let data = buffer.data?.assumingMemoryBound(to: UInt8.self) else { return nil }
-        
-        var minX = width, maxX = 0
-        var minY = height, maxY = 0
-        var foundContent = false
-        
-        // Pemrosesan pointer langsung (meminimalisir overhead Swift boundary check)
-        for y in 0..<height {
-            let rowPtr = data.advanced(by: y * rowBytes)
-            for x in 0..<width {
-                let offset = x * 4 // Mengasumsikan RGBA 4 bytes
-                let r = rowPtr[offset]
-                let g = rowPtr[offset + 1]
-                let b = rowPtr[offset + 2]
-                
-                if r < threshold || g < threshold || b < threshold {
-                    foundContent = true
-                    if x < minX { minX = x }
-                    if x > maxX { maxX = x }
-                    if y < minY { minY = y }
-                    if y > maxY { maxY = y }
-                }
+            guard let cgImage = image.cgImage else {
+                completion(nil)
+                return
             }
+
+            guard let buffer = try? vImage_Buffer(cgImage: cgImage) else {
+                completion(nil)
+                return
+            }
+            defer { buffer.free() }
+
+            let width = Int(buffer.width)
+            let height = Int(buffer.height)
+            let rowBytes = buffer.rowBytes
+            guard let data = buffer.data?.assumingMemoryBound(to: UInt8.self) else {
+                completion(nil)
+                return
+            }
+
+            // cek apakah 1 baris punya konten
+            func rowHasContent(_ y: Int) -> Bool {
+                let rowPtr = data.advanced(by: y * rowBytes)
+                var x = 0
+                while x < width {
+                    let offset = x * 4
+                    if rowPtr[offset] < threshold || rowPtr[offset + 1] < threshold || rowPtr[offset + 2] < threshold {
+                        return true
+                    }
+                    x += 1
+                }
+                return false
+            }
+
+            // cek apakah 1 kolom (dalam rentang y tertentu) punya konten
+            func colHasContent(_ x: Int, yRange: ClosedRange<Int>) -> Bool {
+                let offset = x * 4
+                for y in yRange {
+                    let rowPtr = data.advanced(by: y * rowBytes)
+                    if rowPtr[offset] < threshold || rowPtr[offset + 1] < threshold || rowPtr[offset + 2] < threshold {
+                        return true
+                    }
+                }
+                return false
+            }
+
+            // 1. cari minY (scan dari atas)
+            var minY = 0
+            while minY < height && !rowHasContent(minY) { minY += 1 }
+
+            guard minY < height else {
+                completion(nil) // gambar polos/kosong
+                return
+            }
+
+            // 2. cari maxY (scan dari bawah)
+            var maxY = height - 1
+            while maxY > minY && !rowHasContent(maxY) { maxY -= 1 }
+
+            // 3. cari minX (scan dari kiri, hanya di rentang minY...maxY)
+            var minX = 0
+            while minX < width && !colHasContent(minX, yRange: minY...maxY) { minX += 1 }
+
+            // 4. cari maxX (scan dari kanan)
+            var maxX = width - 1
+            while maxX > minX && !colHasContent(maxX, yRange: minY...maxY) { maxX -= 1 }
+
+            // Hitung Crop Box + Padding
+            let paddingPx = Int(padding)
+            let cropX = max(0, minX - paddingPx)
+            let cropY = max(0, minY - paddingPx)
+            let cropWidth = min(width - cropX, (maxX - minX) + paddingPx * 2)
+            let cropHeight = min(height - cropY, (maxY - minY) + paddingPx * 2)
+
+            let cropRect = CGRect(x: cropX, y: cropY, width: cropWidth, height: cropHeight)
+
+            guard let croppedCGImage = cgImage.cropping(to: cropRect) else {
+                completion(nil)
+                return
+            }
+
+            let timeEnd = CFAbsoluteTimeGetCurrent()
+            print("========PROSES IMAGE CROP========")
+            print("Background Process")
+            print("Finish Add    => \(timeEnd - timeStart) detik")
+            completion(UIImage(cgImage: croppedCGImage, scale: image.scale, orientation: image.imageOrientation))
         }
-        
-        guard foundContent else { return nil }
-        
-        // Hitung Crop Box + Padding
-        let paddingPx = Int(padding)
-        let cropX = max(0, minX - paddingPx)
-        let cropY = max(0, minY - paddingPx)
-        let cropWidth = min(width - cropX, (maxX - minX) + paddingPx * 2)
-        let cropHeight = min(height - cropY, (maxY - minY) + paddingPx * 2)
-        
-        let cropRect = CGRect(x: cropX, y: cropY, width: cropWidth, height: cropHeight)
-        
-        guard let croppedCGImage = cgImage.cropping(to: cropRect) else { return nil }
-        return UIImage(cgImage: croppedCGImage, scale: image.scale, orientation: image.imageOrientation)
     }
     
     @objc private func actionPrint(){
@@ -446,7 +363,7 @@ extension ViewController{
             let chunk = pendingChunks[chunkIndex]
             chunkIndex += 1
             peripheral.writeValue(chunk, for: characteristic, type: .withResponse)
-            // lanjut di delegate didWriteValueFor
+            // lanjut di delegate didWriteValueForm
             return
         }
 

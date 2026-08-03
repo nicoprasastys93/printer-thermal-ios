@@ -17,6 +17,7 @@ class EscPosImageConverter {
     /// - Returns: Data ESC/POS yang siap dikirim via Bluetooth/TCP/USB ke printer
     static func convertToEscPosData(_ image: UIImage, maxWidth: Int = 384, completion: @escaping((_ data: Data?)-> Void)) {
         DispatchQueue.global(qos: .utility).async{
+            let timeStart = CFAbsoluteTimeGetCurrent()
             // 1. Resize gambar agar sesuai dengan lebar kertas printer (harus kelipatan 8)
             let targetWidth = (maxWidth / 8) * 8
             guard targetWidth > 0 else {
@@ -95,7 +96,7 @@ class EscPosImageConverter {
 
             // 3. Konversi grayscale ke Bitwise Raster (1-bit per pixel)
             var bitmapBytes = [UInt8]()
-            let bytesPerRasterRow = width / 8
+            let bytesPerRasterRow = (width + 7) / 8
 
             for y in 0..<height {
                 for byteIdx in 0..<bytesPerRasterRow {
@@ -135,9 +136,16 @@ class EscPosImageConverter {
             escPosData.append(contentsOf: bitmapBytes)
             // line feed
             escPosData.append(contentsOf: [0x0A])
+            escPosData.append(contentsOf: [0x0A])
             // cut
             escPosData.append(contentsOf: [0x1D, 0x56, 0x00])
             
+            let timeEnd = CFAbsoluteTimeGetCurrent()
+            let timeResult = timeEnd - timeStart
+            print("========PROSES IMAGE TO ESP/POS========")
+            print("Background Process")
+            print("Data count => \(escPosData.count)")
+            print("Finish Add => \(timeResult) detik")
             completion(escPosData)
         }
     }
